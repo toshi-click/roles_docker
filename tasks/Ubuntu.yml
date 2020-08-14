@@ -18,32 +18,73 @@
   package:
     name: software-properties-common
     state: present
-
 - name: set dockers official gpg key
   apt_key:
     url: "https://download.docker.com/linux/ubuntu/gpg"
     state: present
   register: set_key
 
-- name: set up the stable repository
-  apt_repository:
-    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
-    state: present
+- block:
+    - name: set up the stable repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
 
-- name: install docker-ce
-  apt:
-    pkg: docker-ce
-    state: present
-    update_cache: yes
-    cache_valid_time: 3600
+    - name: install docker-ce
+      apt:
+        pkg: docker-ce
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
 
-- name: "docker-compose Download"
-  get_url:
-    url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}"
-    dest: /usr/bin/docker-compose
-    owner: root
-    group: root
-    mode: 0755
+    - name: "docker-compose Download"
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_machine }}"
+        dest: /usr/bin/docker-compose
+        owner: root
+        group: root
+        mode: 0755
+
+  when:
+    - ansible_architecture != "aarch64"
+    - ansible_architecture != "armv7l"
+
+- name: "check /usr/bin/docker-compose"
+  stat:
+    path: "/usr/bin/docker-compose"
+  register: docker_compose_check_result
+
+- block:
+    - name: set up the stable repository
+      apt_repository:
+        repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+
+    - name: install docker-ce
+      apt:
+        pkg: docker-ce
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+    - name: git clone docker-compose
+      git:
+        version: master
+        repo: https://github.com/docker/compose.git
+        dest: "/usr/local/src/docker-compose"
+        accept_hostkey: yes
+        force: yes
+    - name: build to docker-compose
+      command: ./script/build/linux
+      args:
+        chdir: /usr/local/src/docker-compose
+    - name: docker-compose copy
+      synchronize:
+        src: "/usr/local/src/docker-compose/dist/docker-compose-Linux-{{ ansible_architecture }}"
+        dest: "/usr/bin/docker-compose"
+      delegate_to: "{{ inventory_hostname }}"
+  when:
+    - ansible_architecture == "aarch64" or ansible_architecture == "armv7l"
+    - not docker_compose_check_result.stat.exists
 
 - name: "docker-compose permission set"
   file:
