@@ -1,18 +1,15 @@
 ---
-- name: apt-transport-https install
-  package:
-    name: apt-transport-https
+- name: apt install docker require packages
+  apt:
+    name: "{{ packages }}"
+    update_cache: yes
+    cache_valid_time: 3600
     state: present
-
-- name: ca-certificates install
-  package:
-    name: ca-certificates
-    state: present
-
-- name: curl install
-  package:
-    name: curl
-    state: present
+  vars:
+    packages:
+      - apt-transport-https
+      - ca-certificates
+      - curl
 
 - name: software-properties-common install
   package:
