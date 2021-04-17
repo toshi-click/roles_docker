@@ -54,12 +54,9 @@
   register: docker_compose_check_result
 
 - block:
-    - name: arm64 set up the gpg key
-      command: curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-      
     - name: arm64 set up the stable repository
       apt_repository:
-        repo: deb [arch=arm64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable
+        repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable
         state: present
 
     - name: install docker-ce
