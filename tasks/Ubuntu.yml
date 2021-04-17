@@ -12,7 +12,6 @@
       - curl
       - gnupg
       - lsb-release
-      - python3-pip
       
 - name: software-properties-common install
   package:
@@ -41,6 +40,13 @@
         update_cache: no
   when:
     - ansible_architecture == "aarch64" or ansible_architecture == "armv7l"
+
+- name: apt install pip3
+  apt:
+    name: python3-pip
+    update_cache: yes
+    cache_valid_time: 3600
+    state: present
 
 - name: install docker-ce
   apt:
