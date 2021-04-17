@@ -10,7 +10,9 @@
       - apt-transport-https
       - ca-certificates
       - curl
-
+      - gnupg
+      - lsb-release
+      
 - name: software-properties-common install
   package:
     name: software-properties-common
