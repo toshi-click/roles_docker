@@ -17,17 +17,18 @@
   package:
     name: software-properties-common
     state: present
-- name: set dockers official gpg key
-  apt_key:
-    url: "https://download.docker.com/linux/ubuntu/gpg"
-    state: present
-  register: set_key
+
+- name: Install docker key
+  get_url:
+    url:  https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/trusted.gpg.d/docker-key.asc
 
 - block:
     - name: amd64 set up the stable repository
       apt_repository:
-        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        repo: deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/docker-key.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
         state: present
+        update_cache: yes
   when:
     - ansible_architecture != "aarch64"
     - ansible_architecture != "armv7l"
@@ -35,9 +36,9 @@
 - block:
     - name: arm64 set up the stable repository
       apt_repository:
-        repo: deb [arch=arm64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        repo: deb [arch=arm64 signed-by=/etc/apt/trusted.gpg.d/docker-key.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
         state: present
-        update_cache: no
+        update_cache: yes
   when:
     - ansible_architecture == "aarch64" or ansible_architecture == "armv7l"
 
@@ -48,12 +49,10 @@
     cache_valid_time: 3600
     state: present
 
-- name: install docker-ce
-  apt:
-    pkg: docker-ce
+- name:  Install docker-ce
+  package:
+    name:  docker-ce
     state: present
-    update_cache: yes
-    cache_valid_time: 3600
 
 - name: Install docker-compose package
   pip:
