@@ -12,7 +12,7 @@
       - curl
       - gnupg
       - lsb-release
-      
+
 - name: software-properties-common install
   package:
     name: software-properties-common
@@ -32,6 +32,7 @@
   when:
     - ansible_architecture != "aarch64"
     - ansible_architecture != "armv7l"
+  ignore_errors: true
 
 - block:
     - name: arm64 set up the stable repository
@@ -41,6 +42,7 @@
         update_cache: yes
   when:
     - ansible_architecture == "aarch64" or ansible_architecture == "armv7l"
+  ignore_errors: true
 
 - name: apt install pip3
   apt:
@@ -53,6 +55,7 @@
   package:
     name:  docker-ce
     state: present
+  ignore_errors: true
 
 - name: Install docker-compose package
   pip:
