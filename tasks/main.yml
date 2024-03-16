@@ -1,21 +1,13 @@
 ---
-- name: apt install docker require packages
-  apt:
-    name: "{{ packages }}"
-    update_cache: yes
-    cache_valid_time: 3600
-    state: present
-  vars:
-    packages:
+- name: install docker require packages
+  ansible.builtin.package:
+    name:
       - apt-transport-https
       - ca-certificates
       - curl
       - gnupg
       - lsb-release
-
-- name: software-properties-common install
-  package:
-    name: software-properties-common
+      - software-properties-common
     state: present
 
 - name: Install docker key
@@ -44,18 +36,12 @@
     - ansible_architecture == "aarch64" or ansible_architecture == "armv7l"
   ignore_errors: true
 
-- name: apt install pip3
-  apt:
-    name: python3-pip
-    update_cache: yes
-    cache_valid_time: 3600
+- name: install pip3 docker-ce
+  ansible.builtin.package:
+    name:
+      - python3-pip
+      - docker-ce
     state: present
-
-- name:  Install docker-ce
-  package:
-    name:  docker-ce
-    state: present
-  ignore_errors: true
 
 - name: Install docker-compose package
   pip:
