@@ -79,3 +79,12 @@
     group: root
     mode: 0644
     backup: true
+
+- name: put /etc/default/docker
+  template:
+    src: etc/default/docker
+    dest: /etc/default/docker
+    owner: root
+    group: root
+    mode: 0644
+    backup: true
